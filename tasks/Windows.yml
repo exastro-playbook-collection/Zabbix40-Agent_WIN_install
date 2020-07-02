@@ -1,0 +1,97 @@
+---
+# 管理対象マシンにZabbix40-Agentをインストール
+
+###############################################################################
+# 一時保管領域の作成
+###############################################################################
+
+## インストール用の一時保管領域の確認
+  - name: check upload directory
+    win_stat: path="{{ VAR_Zabbix40AG_WIN_localpkg_dst }}"
+    register: path_uploaddir_info
+
+## インストール用の一時保管領域が存在しなければ、作成
+  - name: create upload directory
+    win_file: path="{{ VAR_Zabbix40AG_WIN_localpkg_dst }}" state=directory
+    when: not path_uploaddir_info.stat.exists
+
+## Zabbix エージェントディレクトリの存在チェック
+
+  - name: check Zabbix Agent is installed
+    win_stat: path={{ VAR_Zabbix40AG_WIN_path }}
+    register: zabbix40ag_WIN_path
+
+  - block:
+
+## Zabbix 4.0 Agent インストールファイル名の入力値確認
+    - name: check VAR_Zabbix40AG_WIN_localpkg_Zabbix_file
+      fail: msg="VAR_Zabbix40AG_WIN_localpkg_Zabbix_file parameter not set."
+      when:
+        VAR_Zabbix40AG_WIN_localpkg_Zabbix_file is defined and VAR_Zabbix40AG_WIN_localpkg_Zabbix_file == None
+
+## Zabbix 4.0 Agent インストールファイルの転送
+    - name: upload Zabbix Agent binary
+      win_copy:
+        src: "{{ VAR_Zabbix40AG_WIN_localpkg_src }}/{{ VAR_Zabbix40AG_WIN_localpkg_Zabbix_file }}"
+        dest: "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\\"
+      when:
+        - VAR_Zabbix40AG_WIN_localpkg_upload in [True,False]
+        - VAR_Zabbix40AG_WIN_localpkg_upload == True
+
+## Zabbix4.0 インストールファイルの解凍
+    - name: extract zabbix 4.0 binary
+      win_unzip:
+        src: "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\\{{ VAR_Zabbix40AG_WIN_localpkg_Zabbix_file }}"
+        dest: "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\\AutoDeploy_Zabbix40AG"
+
+## Zabbix エージェントディレクトリの作成(bin)
+
+    - name: create zabbix/bin directory
+      win_file: path="{{ VAR_Zabbix40AG_WIN_path }}\\bin" state=directory
+
+## Zabbix エージェントディレクトリの作成(conf)
+
+    - name: create zabbix/conf directory
+      win_file: path="{{ VAR_Zabbix40AG_WIN_path }}\\conf" state=directory
+
+## Zabbix4.0 ディレクトリを「VAR_Zabbix40AG_WIN_path」として移動
+    - name: copy zabbix exe file for Zabbix Agent
+      raw: '& Move-Item "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\AutoDeploy_Zabbix40AG\bin\{{ item }}" "{{ VAR_Zabbix40AG_WIN_path }}\\bin"'
+      with_items: "{{ zabbix40ag_WIN_exe_file }}"
+
+## Zabbix エージェントの設定ファイルの配置
+
+    - name: copy conf file for Zabbix Agent
+      raw: 'Move-Item "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\AutoDeploy_Zabbix40AG\conf\{{ item }}" "{{ VAR_Zabbix40AG_WIN_path }}\\conf"'
+      with_items: "{{ zabbix40ag_WIN_conf_file }}"
+
+## Zabbix エージェント インストールファイルの削除
+    - name: Remove Zabbix Agent binary
+      win_file:
+        path: "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\\{{ VAR_Zabbix40AG_WIN_localpkg_Zabbix_file }}"
+        state: absent
+      when:
+        - VAR_Zabbix40AG_WIN_localpkg_upload in [True,False]
+        - VAR_Zabbix40AG_WIN_localpkg_upload == True
+
+## Zabbix エージェント 解凍ディレクトリの削除
+    - name: Remove extract directory
+      win_file:
+        path: "{{ VAR_Zabbix40AG_WIN_localpkg_dst }}\\AutoDeploy_Zabbix40AG"
+        state: absent
+
+    when: not zabbix40ag_WIN_path.stat.exists
+
+## Zabbix エージェントサービスが登録済みかチェック
+
+  - name: check Zabbix Agent Service is registered
+    win_service:
+      name: "Zabbix Agent"
+    failed_when: false
+    register: zabbix40ag_WIN_service_info
+
+## Zabbix エージェントサービスの登録
+
+  - name: register Zabbix Agent
+    raw: '& "{{ VAR_Zabbix40AG_WIN_path }}\bin\zabbix_agentd.exe" -c "{{ VAR_Zabbix40AG_WIN_path }}\conf\{{ VAR_Zabbix40AG_WIN_conf }}" -i'
+    when: zabbix40ag_WIN_service_info.name is not defined

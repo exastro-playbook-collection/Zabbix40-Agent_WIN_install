@@ -1,0 +1,12 @@
+---
+command:
+  - systeminfo
+  - $PSVersionTable.PSVersion
+  - dir C:\
+  - dir C:\temp
+  - dir 'C:\Program Files'
+  - tree 'C:\Program Files\zabbix_agent'
+  - type 'C:\Program Files\zabbix_agent\zabbix_agentd.log'
+  - type C:\zabbix_agentd.log
+  - tasklist /FI "SERVICES eq Zabbix Agent"
+  - Get-WmiObject Win32_Service -filter "Name='Zabbix Agent'"

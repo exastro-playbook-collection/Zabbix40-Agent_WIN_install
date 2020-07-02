@@ -1,0 +1,16 @@
+galaxy_info:
+  role_name: Zabbix40-Agent_WIN_install
+  description: Install Zabbix Agent Windows.
+  author: NEC Corporation
+  company: NEC Corporation
+  license: Apache License 2.0
+  min_ansible_version: 2.5
+  platforms:
+    - name: Windows 
+      versions:
+        - 2016
+        - 2012 R2
+  galaxy_tags: []
+  categories: []
+
+dependencies: []

@@ -1,0 +1,23 @@
+---
+
+# Playbook 実行時に取得したOS の種類を表示する
+  - name: display os name
+    debug : msg="OS name is {{ ansible_os_name }}."
+
+# サポートするOS 以外の種類であった場合にエラーメッセージを表示する
+  - name: check os distribution
+    fail : msg="This OS is not supported."
+    when:
+      - ansible_os_family not in ['Windows']
+
+# Playbookのデフォルト値で設定してあるOSバージョンと異なる環境の場合にエラーメッセージを表示する。
+  - name: check setup enabled
+    fail: msg="This Playbook is only for {{ zabbix40ag_WIN_OS_Version_2016 }} or {{ zabbix40ag_WIN_OS_Version_2012R2 }}."
+    when:
+      - not ansible_os_name.startswith(zabbix40ag_WIN_OS_Version_2016)
+      - not ansible_os_name.startswith(zabbix40ag_WIN_OS_Version_2012R2)
+
+# 実行するPlaybookを選択
+  - include_tasks: 'Windows.yml'
+    when:
+      - ansible_os_name.startswith(zabbix40ag_WIN_OS_Version_2016) or ansible_os_name.startswith(zabbix40ag_WIN_OS_Version_2012R2)

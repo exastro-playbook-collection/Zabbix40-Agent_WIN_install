@@ -1,0 +1,33 @@
+###  vars file for ansible-zabbix-agent
+
+## setting name for zabbix agent install path
+
+  VAR_Zabbix40AG_WIN_path: 'C:\Program Files\zabbix_agent'
+  VAR_Zabbix40AG_WIN_conf: zabbix_agentd.win.conf
+
+# zabbix agent binary filename
+  VAR_Zabbix40AG_WIN_localpkg_Zabbix_file: zabbix_agents-4.0.5-win-amd64.zip
+
+# install packages path
+  VAR_Zabbix40AG_WIN_localpkg_src: /tmp
+
+# remote temp directory
+  VAR_Zabbix40AG_WIN_localpkg_dst: C:\temp
+
+# Upload file to remote server
+  VAR_Zabbix40AG_WIN_localpkg_upload: on
+
+## local vars
+
+# setting name for Zabbix-Agent pkg
+
+  zabbix40ag_WIN_exe_file: 
+    - zabbix_agentd.exe
+    - zabbix_get.exe
+    - zabbix_sender.exe
+
+  zabbix40ag_WIN_conf_file:
+    - zabbix_agentd.win.conf
+
+  zabbix40ag_WIN_OS_Version_2016: 'Microsoft Windows Server 2016'
+  zabbix40ag_WIN_OS_Version_2012R2: 'Microsoft Windows Server 2012 R2'
